@@ -1,35 +1,43 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+    return (
+        <Tabs
+            screenOptions={{
+                tabBarActiveTintColor: '#0a7ea4',
+                headerShown: false,
+            }}>
 
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+            <Tabs.Screen
+                name="one_partial"
+                options={{
+                    title: 'Primer Parcial',
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons name={'roman-numeral-1'} size={24} color={color} />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
+                name="two_partial"
+                options={{
+                    title: 'Segundo Parcial',
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons name={'roman-numeral-2'} size={24} color={color} />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
+                name="three_partial"
+                options={{
+                    title: 'Tercer Parcial',
+                    tabBarIcon: ({ color, focused }) => (
+                        <MaterialCommunityIcons name={'roman-numeral-3'} size={24} color={color} />
+                    ),
+                }}
+            />
+        </Tabs>
+    );
 }

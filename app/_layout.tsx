@@ -1,24 +1,17 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      {/* Ocultamos el header del Tab para que no estorbe */}
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+      {/* --- AGREGA ESTA LÍNEA --- */}
+      {/* Esto le dice: "La carpeta one_partial tiene su propio header, no le pongas otro encima" */}
+      <Stack.Screen name="one_partial" options={{ headerShown: false }} />
+
+      {/* Tus otras pantallas */}
+      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+    </Stack>
   );
 }
