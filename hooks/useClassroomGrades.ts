@@ -1,111 +1,104 @@
 // hooks/useClassroomGrades.ts
 import { useEffect, useState } from "react";
-import {
-    GoogleCourse,
-    GoogleCourseWork,
-    GoogleSubmission,
-    GradeData,
-} from "../types/classroom";
+import { useAuth } from "../context/AuthContext";
 
-interface UseGradesResult {
-  grades: GradeData[];
-  loading: boolean;
-  error: string | null;
-  refresh: () => void;
+export interface GradeItem {
+  courseWorkId: string;
+  title: string;
+  assignedGrade?: number;
+  state: string; // "TURNED_IN", "RETURNED", etc.
 }
 
-export const useClassroomGrades = (token: string | null): UseGradesResult => {
-  const [grades, setGrades] = useState<GradeData[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+export const useClassroomGrades = (courseId: string) => {
+  const { token } = useAuth();
+  const [grades, setGrades] = useState<GradeItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
-    if (!token) return;
+  const fetchGrades = async () => {
+    if (!token || !courseId) return;
 
     setLoading(true);
     setError(null);
-
     try {
-      // 1. Obtener Cursos
-      const coursesRes = await fetch(
-        "https://classroom.googleapis.com/v1/courses",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const coursesJson = await coursesRes.json();
+      const isPlaceholder = courseId === "ODQyOTkyMzg5Mjk2" || courseId === "TU_ID_DE_CURSO_AQUI";
 
-      const courses: GoogleCourse[] = coursesJson.courses || [];
+      if (isPlaceholder) {
+        setError("Por favor, configura tu COURSE_ID real en el código.");
+        setLoading(false);
+        return;
+      }
 
-      if (courses.length === 0) {
+      // 1. Obtener TODAS las tareas de la clase
+      const worksRes = await fetch(`https://classroom.googleapis.com/v1/courses/${courseId}/courseWork`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!worksRes.ok) {
+        throw new Error("No se pudieron cargar las tareas de la clase.");
+      }
+
+      const worksData = await worksRes.json();
+      const allWorks = worksData.courseWork || [];
+
+      // 2. Filtrar solo las que contengan 'actividad' o 'practica' (insensible a mayúsculas/acentos)
+      const filteredWorks = allWorks.filter((w: any) => {
+        if (!w.title) return false;
+        const lowerTitle = w.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return lowerTitle.includes("actividad") || lowerTitle.includes("practica");
+      });
+
+      if (filteredWorks.length === 0) {
         setGrades([]);
         setLoading(false);
         return;
       }
 
-      // ⚠️ NOTA: Aquí tomo solo el PRIMER curso para el ejemplo.
-      // Si quieres todos, tendrías que hacer un bucle externo.
-      const firstCourse = courses[0];
+      // 3. Obtener las calificaciones de esas tareas específicas
+      const allGrades: GradeItem[] = [];
 
-      // 2. Obtener Trabajos del curso
-      const cwRes = await fetch(
-        `https://classroom.googleapis.com/v1/courses/${firstCourse.id}/courseWork`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      const cwJson = await cwRes.json();
-      const works: GoogleCourseWork[] = cwJson.courseWork || [];
-
-      // 3. Obtener Mis Entregas (Submissions)
-      const promises = works.map(async (work) => {
-        const subRes = await fetch(
-          `https://classroom.googleapis.com/v1/courses/${firstCourse.id}/courseWork/${work.id}/studentSubmissions`,
+      for (const work of filteredWorks) {
+        const response = await fetch(
+          `https://classroom.googleapis.com/v1/courses/${courseId}/courseWork/${work.id}/studentSubmissions`,
           {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        );
-        const subJson = await subRes.json();
-
-        // Buscamos la primera entrega (normalmente solo hay una por alumno)
-        const mySubmission: GoogleSubmission | undefined =
-          subJson.studentSubmissions?.[0];
-
-        // Lógica para determinar el texto de la nota
-        let gradeText = "Sin entregar";
-        if (mySubmission) {
-          if (mySubmission.assignedGrade) {
-            gradeText = String(mySubmission.assignedGrade);
-          } else if (mySubmission.draftGrade) {
-            gradeText = `Borrador: ${mySubmission.draftGrade}`;
-          } else {
-            gradeText = "Entregado (Sin calificar)";
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
           }
+        );
+
+        if (!response.ok) {
+          console.error("Error al obtener tarea:", work.id);
+          continue;
         }
 
-        return {
-          id: work.id,
-          title: work.title,
-          grade: gradeText,
-          courseName: firstCourse.name,
-        } as GradeData;
-      });
+        const data = await response.json();
+        const submissions = data.studentSubmissions || [];
 
-      const results = await Promise.all(promises);
-      setGrades(results);
-    } catch (err) {
+        if (submissions.length > 0) {
+          const sub = submissions[0];
+          allGrades.push({
+            courseWorkId: sub.courseWorkId,
+            title: work.title,
+            assignedGrade: sub.assignedGrade,
+            state: sub.state,
+          });
+        }
+      }
+
+      setGrades(allGrades);
+    } catch (err: any) {
+      setError(err.message || "Error al conectar con Google Classroom");
       console.error(err);
-      setError("Error obteniendo datos de Classroom");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (token) {
-      fetchData();
-    }
-  }, [token]);
+    fetchGrades();
+  }, [token, courseId]);
 
-  return { grades, loading, error, refresh: fetchData };
+  return { grades, loading, error, refetch: fetchGrades };
 };

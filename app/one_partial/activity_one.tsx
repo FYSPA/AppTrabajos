@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 export const title = "Todavia no hay nada";
 
 export default function ActivityOneScreen() {
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Activity One</Text>
@@ -16,7 +17,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: 'white',
+    },
+    header: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
     },
     title: {
         fontSize: 20,

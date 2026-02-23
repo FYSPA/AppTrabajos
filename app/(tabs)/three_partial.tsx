@@ -6,7 +6,7 @@ import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
 interface Activity {
     id: string;
     title: string;
-    type: 'Práctica' | 'Actividad';
+    type: 'Práctica' | 'Actividad' | 'Por Gusto';
     ruta: string;
     icon: any;
 }
@@ -20,10 +20,11 @@ const getAutomatedData = (): Activity[] => {
     const context = require.context('../three_partial', false, /\.(js|jsx|ts|tsx)$/);
 
     return context.keys()
-        .filter(key => key.includes('practica_') || key.includes('activity_'))
+        .filter(key => key.includes('practica_') || key.includes('activity_') || key.includes('por_gusto_'))
         .map((key, index) => {
             const fileName = key.replace('./', '').replace(/\.(js|jsx|ts|tsx)$/, '');
             const isPractica = fileName.startsWith('practica_');
+            const isActividad = fileName.startsWith('activity_');
             const module = context(key);
 
             const customTitle = module.title || fileName
@@ -35,16 +36,16 @@ const getAutomatedData = (): Activity[] => {
             return {
                 id: index.toString(),
                 title: customTitle,
-                type: isPractica ? 'Práctica' : 'Actividad',
+                type: isPractica ? 'Práctica' : (isActividad ? 'Actividad' : 'Por Gusto'),
                 ruta: `/three_partial/${fileName}`,
-                icon: isPractica ? 'code-slash' : 'book-outline'
+                icon: isPractica ? 'code-slash' : (isActividad ? 'book-outline' : 'star-outline')
             };
         });
 };
 
 const ActivityItem = ({ item }: { item: Activity }) => {
     const router = useRouter();
-    const color = item.type === 'Práctica' ? '#4a90e2' : '#f39c12';
+    const color = item.type === 'Práctica' ? '#4a90e2' : (item.type === 'Actividad' ? '#f39c12' : '#59b667ff');
 
     return (
         <Pressable

@@ -25,10 +25,12 @@ export default function PartialOneLayout() {
     <Stack
       screenOptions={({ route }) => {
         const isPractica = route.name.startsWith("practica");
+        const isActividad = route.name.startsWith("actividad");
+        const isPorGusto = route.name.startsWith("por_gusto");
 
         return {
           headerStyle: {
-            backgroundColor: isPractica ? "#4a90e2" : "#f39c12",
+            backgroundColor: isPractica ? "#4a90e2" : isActividad ? "#f39c12" : "#59b667ff",
           },
           headerTintColor: "#fff",
           headerTitleStyle: { fontWeight: "bold" },
