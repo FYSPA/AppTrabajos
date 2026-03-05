@@ -91,7 +91,6 @@ export default function PracticaThree() {
                     />
                 </View>
 
-                {/* BOTÓN REINICIAR */}
                 <Pressable onPress={reset} style={styles.resetButton}>
                     <Ionicons name="trash-outline" size={20} color="#666" />
                     <Text style={styles.resetText}>Reiniciar Mezcla</Text>
