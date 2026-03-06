@@ -9,6 +9,9 @@ export default function PracticaFive() {
   const [numberTwo, setNumberTwo] = useState('');
   const [attempts, setAttempts] = useState(5);
 
+  const [failedNumber, setFailedNumber] = useState<string | null>(null);
+  const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
   const generateRandomNumbers = () => {
     const randomOne = Math.floor(Math.random() * 10) + 1;
     const randomTwo = Math.floor(Math.random() * 10) + 1;
@@ -20,6 +23,7 @@ export default function PracticaFive() {
     generateRandomNumbers()
     setNumber(0)
     setAttempts(5);
+    setFailedNumber(null);
   }
 
   const verifyResult = () => {
@@ -30,15 +34,18 @@ export default function PracticaFive() {
       resetOperation();
     } else {
       const remainingAttempts = attempts - 1;
-      if (remainingAttempts === 3) {
-        alert("Tu puedes te falta poco")
-      }
+
       if (remainingAttempts === 0) {
         alert("Multiplicación Incorrecta. El resultado era: " + result);
-        resetOperation();
+        setFailedNumber(numberOne);
+        setAttempts(5);
       } else {
         setAttempts(remainingAttempts);
-        alert("Incorrecto. Te quedan " + remainingAttempts + " intentos.");
+        if (remainingAttempts === 3) {
+          alert("Tú puedes, te falta poco. Te quedan 3 intentos.");
+        } else {
+          alert("Incorrecto. Te quedan " + remainingAttempts + " intentos.");
+        }
       }
     }
   };
@@ -67,6 +74,18 @@ export default function PracticaFive() {
       <TouchableOpacity style={styles.button} onPress={verifyResult}>
         <Text style={styles.buttonText}>Verificar</Text>
       </TouchableOpacity>
+
+      {failedNumber && (
+        <View style={styles.table}>
+          <Text style={styles.tableTitle}>Repasa la tabla del {failedNumber}:</Text>
+          {rows.map((row) => (
+            <Text key={row} style={styles.rowText}>
+              {failedNumber} x {row} ={" "}
+              <Text style={styles.result}>{Number(failedNumber) * row}</Text>
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -130,5 +149,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  table: {
+    marginTop: 20,
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e74c3c',
+    fontWeight: 100,
+    margin: 30,
+  },
+  tableTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#e74c3c'
+  },
+  rowText: {
+    fontSize: 16,
+    color: '#333',
+    marginVertical: 2,
+  },
+  result: {
+    fontWeight: 100,
+    color: '#cc2e2eff',
   }
 });
