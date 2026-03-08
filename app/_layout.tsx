@@ -7,8 +7,9 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider>
         <Stack>
+          <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="one_partial" options={{ headerShown: false }} />
+          {/* <Stack.Screen name="one_partial" options={{ headerShown: false }} /> */}
         </Stack>
       </ThemeProvider>
     </AuthProvider>
