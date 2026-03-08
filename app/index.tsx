@@ -1,5 +1,6 @@
 import ButtonWidget from "@/components/indexComponents/ButtonWidget";
-import { Image, StyleSheet } from "react-native";
+import CarrouselImages from "@/components/indexComponents/CarrouselImages";
+import { StyleSheet, View } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
 export default function Index() {
@@ -8,10 +9,9 @@ export default function Index() {
       colors={["#1b5fbe", "#4d92f8", "#BFD1F0"]}
       style={styles.mainContainer}
     >
-      <Image
-        style={styles.tinyLogo}
-        source={require("../assets/indexImages/logo.png")}
-      />
+      <View style={styles.carrouselContainer}>
+        <CarrouselImages></CarrouselImages>
+      </View>
       <ButtonWidget></ButtonWidget>
     </LinearGradient>
   );
@@ -35,9 +35,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  tinyLogo: {
+  carrouselContainer: {
     width: "100%",
-    height: "90%",
-    resizeMode: "contain",
+    height: "50%",
   },
 });
