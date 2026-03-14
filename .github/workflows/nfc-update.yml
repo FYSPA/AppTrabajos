@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: "npm" # Esto ayuda a que no falle la instalación
 
       - name: Configurar Expo
         uses: expo/expo-github-action@v8
@@ -26,7 +27,7 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Instalar dependencias
-        run: npm install
+        run: npm ci # "npm ci" es mejor que "npm install" para servidores de automatización
 
       - name: Subir actualización a Expo (Preview)
         run: |
