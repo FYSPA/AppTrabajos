@@ -1,0 +1,33 @@
+name: Actualizar App via NFC
+on:
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: "Nombre de la app a actualizar"
+        required: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v3
+
+      - name: Configurar Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Configurar Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Subir actualización a Expo (Preview)
+        run: |
+          eas update --branch preview --message "Actualización lanzada por NFC: ${{ github.event.inputs.app_name }}"
