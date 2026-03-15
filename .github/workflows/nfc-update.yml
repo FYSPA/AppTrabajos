@@ -1,4 +1,4 @@
-name: Compilar APK via NFC
+name: Update OTA via NFC
 on:
   workflow_dispatch:
     inputs:
@@ -7,7 +7,7 @@ on:
         required: true
 
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar código
@@ -29,16 +29,13 @@ jobs:
       - name: Instalar dependencias
         run: npm install
 
-      - name: Compilar APK
-        id: build_apk
-        # Este comando compila y genera el link. El --no-wait es opcional,
-        # pero si queremos el link final, dejaremos que termine.
+      - name: Publicar Actualización OTA
         run: |
-          BUILD_URL=$(eas build --platform android --profile preview --non-interactive | grep "https://expo.dev/artifacts" | tail -1)
-          echo "url=$BUILD_URL" >> $GITHUB_OUTPUT
+          # Esto sube el JS a la nube de Expo en segundos
+          eas update --branch preview --message "Update via NFC: ${{ github.event.inputs.app_name }}"
 
-      - name: Enviar Link a Telegram
+      - name: Avisar a Telegram
         run: |
-          curl -s -X POST https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-          -d chat_id=${{ secrets.TELEGRAM_CHAT_ID }} \
-          -d text="✅ ¡Jefe, el APK de ${{ github.event.inputs.app_name }} está listo! Descárgalo aquí: ${{ steps.build_apk.outputs.url }}"
+          curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+          -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
+          -d "text=🚀 ¡Update de ${{ github.event.inputs.app_name }} enviado! Abre tu app para ver los cambios."
