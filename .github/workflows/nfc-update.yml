@@ -1,5 +1,8 @@
-name: Update OTA via NFC
+name: Update OTA Automatico
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       app_name:
