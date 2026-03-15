@@ -1,16 +1,22 @@
-name: Update OTA Automatico
+name: Despliegue Dual (Push Automático o NFC Manual)
+
 on:
   push:
     branches:
-      - main
+      - main # Cambia a 'master' si esa es tu rama principal
   workflow_dispatch:
     inputs:
       app_name:
         description: "Nombre de la app"
         required: true
+        default: "AppTrabajos"
+      action_type:
+        description: "Tipo de acción: update o build"
+        required: true
+        default: "update"
 
 jobs:
-  update:
+  process:
     runs-on: ubuntu-latest
     steps:
       - name: Descargar código
@@ -32,13 +38,31 @@ jobs:
       - name: Instalar dependencias
         run: npm install
 
+      # CAMINO A: Actualización OTA (Se activa por PUSH o por NFC 'update')
       - name: Publicar Actualización OTA
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action_type == 'update') }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          # Esto sube el JS a la nube de Expo en segundos
-          eas update --branch preview --message "Update via NFC: ${{ github.event.inputs.app_name }}"
+          eas update --branch preview --message "Despliegue via ${{ github.event_name }}"
+          echo "RES_MSG=🚀 ¡Update enviado con éxito! Abre tu app para ver los cambios." >> $GITHUB_ENV
 
+      # CAMINO B: Compilar APK (Solo se activa por NFC eligiendo 'build')
+      - name: Compilar APK
+        id: build_apk
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.action_type == 'build' }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          # El comando genera el APK y extraemos la URL de descarga
+          URL=$(eas build --platform android --profile preview --non-interactive | grep "https://expo.dev/artifacts" | tail -1)
+          echo "apk_url=$URL" >> $GITHUB_OUTPUT
+          echo "RES_MSG=✅ ¡Jefe, el APK está listo! Descárgalo aquí: " >> $GITHUB_ENV
+
+      # PASO FINAL: Notificación a Telegram
       - name: Avisar a Telegram
+        if: always() # Para que te avise incluso si falla
         run: |
           curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
           -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-          -d "text=🚀 ¡Update de ${{ github.event.inputs.app_name }} enviado! Abre tu app para ver los cambios."
+          -d "text=${{ env.RES_MSG }}${{ steps.build_apk.outputs.apk_url }}"
